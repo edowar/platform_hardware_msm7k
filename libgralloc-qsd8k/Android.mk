@@ -19,6 +19,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := liblog libcutils libGLESv1_CM
 
 LOCAL_SRC_FILES := 	\
@@ -31,6 +32,11 @@ LOCAL_SRC_FILES := 	\
 	
 LOCAL_MODULE := gralloc.$(TARGET_BOARD_PLATFORM)
 LOCAL_CFLAGS:= -DLOG_TAG=\"$(TARGET_BOARD_PLATFORM).gralloc\"
+
+ifeq ($(BOARD_USE_QCOM_PMEM),true)
+	LOCAL_CFLAGS += -DUSE_QCOM_PMEM
+endif
+
 include $(BUILD_SHARED_LIBRARY)
 
 # Build a host library for testing

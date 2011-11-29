@@ -279,12 +279,19 @@ int gralloc_unlock(gralloc_module_t const* module,
     int32_t current_value, new_value;
 
     if (hnd->flags & private_handle_t::PRIV_FLAGS_NEEDS_FLUSH) {
-        struct pmem_region region;
         int err;
-
+#ifdef USE_QCOM_PMEM
+        struct pmem_addr pmem_addr;
+        pmem_addr.vaddr = hnd->base;
+        pmem_addr.offset = hnd->offset;
+        pmem_addr.length = hnd->size;
+        err = ioctl(hnd->fd, PMEM_CLEAN_CACHES, &pmem_addr);
+#else
+        struct pmem_region region;
         region.offset = hnd->offset;
         region.len = hnd->size;
         err = ioctl(hnd->fd, PMEM_CACHE_FLUSH, &region);
+#endif
         LOGE_IF(err < 0, "cannot flush handle %p (offs=%x len=%x)\n",
                 hnd, hnd->offset, hnd->size);
         hnd->flags &= ~private_handle_t::PRIV_FLAGS_NEEDS_FLUSH;
