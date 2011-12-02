@@ -67,9 +67,9 @@ endif
 ifneq ($(TARGET_SIMULATOR),true)
 LOCAL_SHARED_LIBRARIES += libdl
 endif
-ifeq ($(BOARD_HAVE_BLUETOOTH),true)
-LOCAL_SHARED_LIBRARIES += audio.a2dp.default libbinder
-endif
+#ifeq ($(BOARD_HAVE_BLUETOOTH),true)
+#LOCAL_SHARED_LIBRARIES += audio.a2dp.default libbinder
+#endif
 
 LOCAL_C_INCLUDES += $(TARGET_OUT_HEADERS)/mm-audio/audio-alsa
 LOCAL_SRC_FILES += AudioHardware.cpp
