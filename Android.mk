@@ -14,24 +14,15 @@
 # limitations under the License.
 #
 
-LIBRPC := librpc
-ifeq ($(BOARD_USES_QCOM_LIBRPC),true)
-    LIBRPC := librpc-qcom
-endif
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
 
-common_msm_dirs :=
-msm7k_dirs := $(common_msm_dirs) boot libgralloc libaudio
-qsd8k_dirs := $(common_msm_dirs) libgralloc-qsd8k libaudio-qsd8k dspcrashd
-msm7x30_dirs := liblights $(LIBRPC) dspcrashd libaudio-msm7x30
+common_msm_dirs := liblights librpc dspcrashd libaudio-msm7x30
+msm7k_dirs := $(common_msm_dirs) boot
 
-ifeq ($(TARGET_BOARD_PLATFORM),msm7k)
+ifeq ($(TARGET_BOARD_PLATFORM),msm7x27)
   include $(call all-named-subdir-makefiles,$(msm7k_dirs))
 else
-  ifeq ($(TARGET_BOARD_PLATFORM),qsd8k)
-    include $(call all-named-subdir-makefiles,$(qsd8k_dirs))
-  else
-    ifeq ($(TARGET_BOARD_PLATFORM),msm7x30)
-      include $(call all-named-subdir-makefiles,$(msm7x30_dirs))
-    endif
-  endif
+  include $(call all-named-subdir-makefiles,$(common_msm_dirs))
+endif
+
 endif
