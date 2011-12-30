@@ -38,20 +38,16 @@
 #endif
 
 #ifdef DEBUG
-#define D(x...) PRINT(x...)
+#define D PRINT
 #else
 #define D(x...) do { } while(0)
 #endif
 
 #ifdef VERBOSE
-#define V(x...) PRINT(x...)
+#define V PRINT
 #else
 #define V(x...) do { } while(0)
 #endif
-
-#define LIBRPC_DEBUG(x...) do { \
-        SLOGD(x);               \
-    } while(0)
 
 #define E(x...) do {                                        \
         fprintf(stderr, "%s(%d) ", __FUNCTION__, __LINE__); \
