@@ -16,7 +16,7 @@
 
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
 
-common_msm_dirs := liblights dspcrashd libaudio-msm7x30 librpc
+common_msm_dirs := liblights dspcrashd libaudio-msm7x30
 msm7k_dirs := $(common_msm_dirs) boot
 
 ifeq ($(TARGET_BOARD_PLATFORM),msm7x30)

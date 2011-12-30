@@ -39,7 +39,7 @@
  * Copyright (C) 1984, Sun Microsystems, Inc.
  */
 
-/* Copyright (c) 2010-2011, Code Aurora Forum. */
+/* Copyright (c) 2010, Code Aurora Forum. */
 
 #include <rpc/rpc.h>
 #include <sys/select.h>
@@ -90,9 +90,6 @@ struct SVCXPRT {
     registered_server *servers;
     int num_cb_servers;
     volatile int num_servers;
-
-    volatile int in_reset;
-    svc_reset_notif_cb reset_cb;
 };
 
 static pthread_mutex_t xprt_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -110,26 +107,6 @@ SVCXPRT *the_xprt; /* FIXME: have a list or something */
  */
 
 void svc_dispatch(registered_server *svc, SVCXPRT *xprt);
-
-int svc_is_in_reset(void* xprt) {
-    return ((SVCXPRT *)xprt)->in_reset;
-}
-
-void svc_set_in_reset(void* xprt, int val) {
-    ((SVCXPRT *)xprt)->in_reset = val;
-}
-
-void svc_reset_cb(void* xprt, enum rpc_reset_event event) {
-    SVCXPRT *xprt_type = (SVCXPRT *)xprt;
-
-    pthread_mutex_lock(&xprt_lock);
-
-    D("Calling reset cb %p with event %d\n", xprt_type->reset_cb, event);
-    if (xprt_type->reset_cb)
-        xprt_type->reset_cb(xprt, event);
-
-    pthread_mutex_unlock(&xprt_lock);
-}
 
 static void* svc_context(void *__u)
 {
@@ -317,30 +294,6 @@ bool_t svc_register (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers,
     return TRUE;
 }
 
-int svc_register_reset_notification_cb(SVCXPRT *xprt, svc_reset_notif_cb cb) {
-    int ret = 1;
-
-    if (xprt) {
-        pthread_mutex_lock(&xprt->lock);
-        xprt->reset_cb = cb;
-        ret = 0;
-        pthread_mutex_unlock(&xprt->lock);
-    }
-    return ret;
-}
-
-svc_reset_notif_cb svc_unregister_reset_notification_cb(SVCXPRT *xprt) {
-    svc_reset_notif_cb cb = NULL;
-
-    if (xprt) {
-        pthread_mutex_lock(&xprt->lock);
-        cb = xprt->reset_cb;
-        xprt->reset_cb = NULL;
-        pthread_mutex_unlock(&xprt->lock);
-    }
-    return cb;
-}
-
 void svc_unregister (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers) {
     registered_server *prev, *found;
     pthread_mutex_lock(&xprt->lock);
@@ -430,7 +383,7 @@ void svc_dispatch(registered_server *svc, SVCXPRT *xprt)
        program-version numbers must match what's in the XDR of the service. */
 
     D("reading on fd %d for %08x:%d\n", 
-      svc->xdr->fd, (int)svc->x_prog, (int)svc->x_vers);
+      svc->xdr->fd, svc->x_prog, svc->x_vers);
 
     uint32 prog = ntohl(((uint32 *)(svc->xdr->in_msg))[RPC_OFFSET+3]);
     uint32 vers = ntohl(((uint32 *)(svc->xdr->in_msg))[RPC_OFFSET+4]);
@@ -561,7 +514,7 @@ svc_sendreply (SVCXPRT *xprt, xdrproc_t xdr_results,
 
         ((uint32 *)(serv->xdr->out_msg))[RPC_OFFSET] =
             ((uint32 *)(serv->xdr->in_msg))[RPC_OFFSET]; //RPC xid
-        LIBRPC_DEBUG("%08x:%d sending RPC reply (XID %d)\n",
+        D("%08x:%d sending RPC reply (XID %d)\n",
           serv->xdr->x_prog,
           serv->xdr->x_vers,
           ntohl(((uint32 *)(serv->xdr->out_msg))[RPC_OFFSET]));
